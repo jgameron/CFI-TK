@@ -1,11 +1,12 @@
-/* Flight Timer & Log PWA — Version 0.01 */
+/* Flight Timer & Log PWA — Version 1.0 */
 (function(){
 
   const $ = (sel) => document.querySelector(sel);
-  const stateKey = "ftl.state.v0.01";
+  const stateKey = "ftl.state.v1.0";
 
   const els = {
-    elapsedHHMM: $("#elapsedHHMM"),
+    elapsedHHMMSS: $("#elapsedHHMMSS"),
+    pausedHHMMSS: $("#pausedHHMMSS"),
     elapsedDec: $("#elapsedDec"),
     startedAt: $("#startedAt"),
     startResumeBtn: $("#startResumeBtn"),
@@ -47,6 +48,10 @@
       lastResumeMs: null,
       // total elapsed not including current run segment
       baseElapsedMs: 0,
+      // when the timer was paused
+      lastPauseMs: null,
+      // total paused time
+      basePausedMs: 0,
     },
     landings: { student: 0, instructor: 0 },
     hobbs: { start: "", stop: "" },
@@ -96,6 +101,10 @@
 
   function startTimer(){
     if(!st.timer.firstStartMs) st.timer.firstStartMs = now();
+    if(st.timer.lastPauseMs){
+      st.timer.basePausedMs += Math.max(0, now() - st.timer.lastPauseMs);
+      st.timer.lastPauseMs = null;
+    }
     st.timer.lastResumeMs = now();
     st.timer.running = true;
     save();
@@ -109,8 +118,8 @@
     st.timer.baseElapsedMs += Math.max(0, delta);
     st.timer.lastResumeMs = null;
     st.timer.running = false;
+    st.timer.lastPauseMs = now();
     save();
-    stopTicking();
     renderTimer();
   }
 
@@ -129,11 +138,19 @@
     return base;
   }
 
-  function msToHHMM(ms){
-    const totalMin = Math.floor(ms/60000);
-    const hh = Math.floor(totalMin / 60);
-    const mm = totalMin % 60;
-    return String(hh).padStart(2,'0') + ":" + String(mm).padStart(2,'0');
+  function getPausedMs(){
+    const base = st.timer.basePausedMs || 0;
+    if(!st.timer.running && st.timer.lastPauseMs){
+      return base + (now() - st.timer.lastPauseMs);
+    }
+    return base;
+  }
+  function msToHHMMSS(ms){
+    const totalSec = Math.floor(ms/1000);
+    const hh = Math.floor(totalSec / 3600);
+    const mm = Math.floor((totalSec % 3600) / 60);
+    const ss = totalSec % 60;
+    return String(hh).padStart(2,'0') + ":" + String(mm).padStart(2,'0') + ":" + String(ss).padStart(2,'0');
   }
 
   function msToDec(ms){
@@ -143,8 +160,10 @@
 
   function renderTimer(){
     const ms = getElapsedMs();
-    els.elapsedHHMM.textContent = msToHHMM(ms);
+    els.elapsedHHMMSS.textContent = msToHHMMSS(ms);
     els.elapsedDec.textContent = msToDec(ms);
+    const pms = getPausedMs();
+    els.pausedHHMMSS.textContent = msToHHMMSS(pms);
     const running = st.timer.running;
     els.timerState.textContent = running ? "running" : "stopped";
     els.timerState.classList.toggle("running", running);
@@ -184,7 +203,7 @@
   });
 
   // Resume ticking if re-opened
-  if(st.timer.running) startTicking();
+  if(st.timer.running || st.timer.lastPauseMs) startTicking();
   renderTimer();
 
   // ==== LANDINGS ====
@@ -320,12 +339,12 @@
   function renderSummary(){
     const lines = [];
     lines.push("Flight Timer & Log — Summary");
-    lines.push("Version: 0.01");
+    lines.push("Version: 1.0");
     const updated = new Date(st.meta.updatedAt);
     lines.push("Saved: " + updated.toLocaleString());
     lines.push("");
     // Live timer
-    const timerHHMM = document.getElementById("elapsedHHMM").textContent;
+    const timerHHMM = document.getElementById("elapsedHHMMSS").textContent;
     const timerDec = document.getElementById("elapsedDec").textContent;
     const started = document.getElementById("startedAt").textContent;
     lines.push("[Live Timer]");

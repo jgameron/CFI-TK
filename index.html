@@ -72,6 +72,7 @@
     }
     .stat label { display:block; font-size: .9rem; color: var(--muted); }
     .stat .value { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .timer-display .value { font-size: 3rem; }
     .btns { display:flex; gap:8px; flex-wrap: wrap; margin-top:12px; }
     button {
       font: inherit;
@@ -96,13 +97,18 @@
 
     .knum, .ktime {
       width: 100%;
-      padding: 14px 16px;
-      border-radius: 14px;
+      padding: 20px 24px;
+      border-radius: 18px;
       border: 1px solid var(--border);
       background: #0c1326;
       color: var(--text);
-      font-size: 1.1rem;
+      font-size: 1.35rem;
       font-variant-numeric: tabular-nums;
+    }
+    #hobbsCard .section-row label,
+    #tachCard .section-row label,
+    #manualCard .section-row label {
+      font-size: 1.1rem;
     }
     .hint { color: var(--muted); font-size: .8rem; }
     .section-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -162,8 +168,12 @@
         <h2>Live Flight Timer</h2>
         <div class="timer-display">
           <div class="stat">
-            <label>Elapsed (HH:MM)</label>
-            <div id="elapsedHHMM" class="value">00:00</div>
+            <label>Elapsed (HH:MM:SS)</label>
+            <div id="elapsedHHMMSS" class="value">00:00:00</div>
+          </div>
+          <div class="stat">
+            <label>Paused (HH:MM:SS)</label>
+            <div id="pausedHHMMSS" class="value">00:00:00</div>
           </div>
           <div class="stat">
             <label>Elapsed (Decimal)</label>
@@ -290,7 +300,8 @@
   </main>
 
   <footer>
-    <div class="tiny">Flight Timer & Log — Version 0.01</div>
+    <div class="tiny">Created by James Gameron</div>
+    <div class="tiny">Flight Timer & Log — Version 1.0</div>
   </footer>
 
   <script src="app.js"></script>
