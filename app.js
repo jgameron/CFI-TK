@@ -344,40 +344,56 @@
     lines.push("Saved: " + updated.toLocaleString());
     lines.push("");
     // Live timer
-    const timerHHMM = document.getElementById("elapsedHHMMSS").textContent;
-    const timerDec = document.getElementById("elapsedDec").textContent;
-    const started = document.getElementById("startedAt").textContent;
-    lines.push("[Live Timer]");
-    lines.push("  Started: " + started);
-    lines.push("  Elapsed: " + timerHHMM + " (" + timerDec + " h)");
-    lines.push("");
+    if (st.timer.firstStartMs) {
+      const timerHHMM = document.getElementById("elapsedHHMMSS").textContent;
+      const timerDec = document.getElementById("elapsedDec").textContent;
+      const started = document.getElementById("startedAt").textContent;
+      lines.push("[Live Timer]");
+      lines.push("  Started: " + started);
+      lines.push("  Elapsed: " + timerHHMM + " (" + timerDec + " h)");
+      lines.push("");
+    }
     // Landings
-    lines.push("[Landings]");
-    lines.push("  Student: " + st.landings.student);
-    lines.push("  Instructor: " + st.landings.instructor);
-    lines.push("");
+    if (st.landings.student > 0 || st.landings.instructor > 0) {
+      lines.push("[Landings]");
+      if (st.landings.student > 0) lines.push("  Student: " + st.landings.student);
+      if (st.landings.instructor > 0) lines.push("  Instructor: " + st.landings.instructor);
+      lines.push("");
+    }
     // Hobbs
+    const hobbsStart = st.hobbs.start;
+    const hobbsStop = st.hobbs.stop;
     const hobbsTotal = document.getElementById("hobbsTotal").textContent;
-    lines.push("[Hobbs]");
-    lines.push("  Start: " + (st.hobbs.start || "--"));
-    lines.push("  Stop : " + (st.hobbs.stop || "--"));
-    lines.push("  Total: " + hobbsTotal + " h");
-    lines.push("");
+    if (hobbsStart || hobbsStop) {
+      lines.push("[Hobbs]");
+      if (hobbsStart) lines.push("  Start: " + hobbsStart);
+      if (hobbsStop) lines.push("  Stop : " + hobbsStop);
+      if (hobbsStart && hobbsStop) lines.push("  Total: " + hobbsTotal + " h");
+      lines.push("");
+    }
     // Tach
+    const tachStart = st.tach.start;
+    const tachStop = st.tach.stop;
     const tachTotal = document.getElementById("tachTotal").textContent;
-    lines.push("[Tach]");
-    lines.push("  Start: " + (st.tach.start || "--"));
-    lines.push("  Stop : " + (st.tach.stop || "--"));
-    lines.push("  Total: " + tachTotal + " h");
-    lines.push("");
+    if (tachStart || tachStop) {
+      lines.push("[Tach]");
+      if (tachStart) lines.push("  Start: " + tachStart);
+      if (tachStop) lines.push("  Stop : " + tachStop);
+      if (tachStart && tachStop) lines.push("  Total: " + tachTotal + " h");
+      lines.push("");
+    }
     // Manual
+    const manStart = st.manual.start;
+    const manStop = st.manual.stop;
     const manHHMM = document.getElementById("manHHMM").textContent;
     const manDec = document.getElementById("manDec").textContent;
-    lines.push("[Manual Time]");
-    lines.push("  Start: " + (st.manual.start || "--:--"));
-    lines.push("  Stop : " + (st.manual.stop || "--:--"));
-    lines.push("  Elapsed: " + manHHMM + " (" + manDec + " h)");
-    lines.push("");
+    if (manStart || manStop) {
+      lines.push("[Manual Time]");
+      if (manStart) lines.push("  Start: " + manStart);
+      if (manStop) lines.push("  Stop : " + manStop);
+      if (manStart && manStop) lines.push("  Elapsed: " + manHHMM + " (" + manDec + " h)");
+      lines.push("");
+    }
     els.summaryBox.value = lines.join("\n");
   }
   renderSummary();
