@@ -109,18 +109,18 @@
     .counter { display:flex; gap: 8px; align-items:center; }
     .counter + .counter { margin-top: 12px; }
     .count {
-      min-width: 48px;
+      min-width: 40px;
       text-align: center;
       font-size: 1.5rem;
       font-weight: 700;
-      padding: 6px 8px;
+      padding: 4px 6px;
       border-radius: 12px;
       background: #0b1224;
       border: 1px solid var(--border);
     }
     .counter button {
-      font-size: 2rem;
-      padding: 20px 24px;
+      font-size: 2.4rem;
+      padding: 28px 40px;
     }
     .copybox {
       width: 100%; min-height: 120px; resize: vertical;
@@ -133,9 +133,16 @@
     .tiny { font-size: .8rem; }
     .install-banner { display:none; margin-left: auto; }
     .pill {
-      display:inline-block; padding: 2px 8px; border-radius: 999px;
-      border: 1px solid var(--border); color: var(--muted); font-size: .75rem;
+      display:inline-flex; align-items:center; gap:4px; padding: 2px 8px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted); font-size: .75rem; line-height:1;
     }
+    .pill::before {
+      content: "";
+      width: 8px; height: 8px; border-radius: 50%;
+      background: currentColor;
+    }
+    .pill.running { color: var(--accent); }
+    .pill.stopped { color: var(--danger); }
   </style>
 </head>
 <body>
@@ -171,7 +178,7 @@
           <button id="startResumeBtn" class="primary">Start</button>
           <button id="pauseBtn">Pause</button>
           <button id="resetTimerBtn" class="danger">Reset</button>
-          <span id="timerState" class="pill">stopped</span>
+          <span id="timerState" class="pill stopped">stopped</span>
         </div>
         <p class="hint">Pauses don’t count toward elapsed time. Timer persists if you close the tab.</p>
       </section>

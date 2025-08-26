@@ -145,7 +145,10 @@
     const ms = getElapsedMs();
     els.elapsedHHMM.textContent = msToHHMM(ms);
     els.elapsedDec.textContent = msToDec(ms);
-    els.timerState.textContent = st.timer.running ? "running" : "stopped";
+    const running = st.timer.running;
+    els.timerState.textContent = running ? "running" : "stopped";
+    els.timerState.classList.toggle("running", running);
+    els.timerState.classList.toggle("stopped", !running);
     if(st.timer.firstStartMs){
       const d = new Date(st.timer.firstStartMs);
       const hh = String(d.getHours()).padStart(2,'0');
