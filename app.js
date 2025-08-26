@@ -28,6 +28,7 @@
     tachStop: $("#tachStop"),
     tachTotal: $("#tachTotal"),
     clearTach: $("#clearTach"),
+    dueBack: $("#dueBack"),
     manStart: $("#manStart"),
     manStop: $("#manStop"),
     manHHMM: $("#manHHMM"),
@@ -60,6 +61,7 @@
     landings: { student: 0, instructor: 0 },
     hobbs: { start: "", stop: "" },
     tach: { start: "", stop: "" },
+    due: { back: "" },
     manual: { start: "", stop: "" },
     meta: { updatedAt: new Date().toISOString() },
   };
@@ -346,6 +348,13 @@
   });
   renderManual();
 
+  // ==== DUE BACK TIME (HH:MM) ====
+  function renderDue(){
+    els.dueBack.value = st.due.back;
+  }
+  bindTimeInput(els.dueBack, 'due.back');
+  renderDue();
+
   // ==== SUMMARY ====
   function renderSummary(){
     const lines = [];
@@ -391,6 +400,13 @@
       if (tachStart) lines.push("  Start: " + tachStart);
       if (tachStop) lines.push("  Stop : " + tachStop);
       if (tachStart && tachStop) lines.push("  Total: " + tachTotal + " h");
+      lines.push("");
+    }
+    // Due Back
+    const dueBack = st.due.back;
+    if (dueBack) {
+      lines.push("[Due Back]");
+      lines.push("  Time: " + dueBack);
       lines.push("");
     }
     // Manual
