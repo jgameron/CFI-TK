@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flight Timer & Log</title>
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="description" content="Offline PWA for flight timing, landings, Hobbs/Tach, and summaries.">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111827;
+      --panel-2: #0f172a;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --border: #1f2937;
+      --focus: #60a5fa;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 50% -100px, #1f2937, var(--bg));
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(15,23,42,.95), rgba(15,23,42,.75));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+    h1 { font-size: 1.35rem; margin: 0 0 6px; font-weight: 700; }
+    .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 8px; font-size: .9rem; }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h2 {
+      margin-top: 0; font-size: 1.1rem;
+    }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .row > * { flex: 1 1 auto; }
+    .timer-display {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      align-items: center;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .stat {
+      background: #0b1224;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .stat label { display:block; font-size: .8rem; color: var(--muted); }
+    .stat .value { font-size: 1.6rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .btns { display:flex; gap:8px; flex-wrap: wrap; margin-top:12px; }
+    button {
+      font: inherit;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0c1326;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform .02s ease, background .15s ease;
+      user-select: none;
+    }
+    button:hover { background: #111a33; }
+    button:active { transform: translateY(1px); }
+    button.primary { background: #0b2a18; border-color: #164e2e; }
+    button.primary:hover { background: #0d3a20; }
+    button.warn { background: #2a1f0b; border-color: #4e3b16; }
+    button.danger { background: #2a0b0b; border-color: #4e1616; }
+    button.ghost { background: transparent; }
+    button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .knum, .ktime {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0c1326;
+      color: var(--text);
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .hint { color: var(--muted); font-size: .8rem; }
+    .section-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .counter { display:flex; gap: 8px; align-items:center; }
+    .count {
+      min-width: 64px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #0b1224;
+      border: 1px solid var(--border);
+    }
+    .copybox {
+      width: 100%; min-height: 120px; resize: vertical;
+      padding: 12px 14px; background: #0c1326; color: var(--text);
+      border-radius: 12px; border: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .95rem; line-height: 1.4;
+    }
+    footer { color: var(--muted); text-align: center; padding: 24px; }
+    .tiny { font-size: .8rem; }
+    .install-banner { display:none; margin-left: auto; }
+    .clear-btn {
+      border: 1px dashed var(--border);
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+    }
+    .pill {
+      display:inline-block; padding: 2px 8px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted); font-size: .75rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="row">
+        <div>
+          <h1>Flight Timer & Log</h1>
+          <p class="subtitle">Offline PWA — your data stays in local storage</p>
+        </div>
+        <button id="installBtn" class="install-banner">Install App</button>
+      </div>
+
+      <div class="card" id="timerCard" aria-live="polite">
+        <h2>Live Flight Timer</h2>
+        <div class="timer-display">
+          <div class="stat">
+            <label>Elapsed (HH:MM)</label>
+            <div id="elapsedHHMM" class="value">00:00</div>
+          </div>
+          <div class="stat">
+            <label>Elapsed (Decimal)</label>
+            <div id="elapsedDec" class="value">0.00</div>
+          </div>
+          <div class="stat">
+            <label>Started (Local)</label>
+            <div id="startedAt" class="value">--:--:--</div>
+          </div>
+        </div>
+        <div class="btns">
+          <button id="startResumeBtn" class="primary">Start</button>
+          <button id="pauseBtn">Pause</button>
+          <button id="resetTimerBtn" class="danger">Reset</button>
+          <span id="timerState" class="pill">stopped</span>
+        </div>
+        <p class="hint">Pauses don’t count toward elapsed time. Timer persists if you close the tab.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="card" id="landingsCard">
+        <h2>Landings</h2>
+        <div class="row">
+          <div class="counter" style="flex:1">
+            <button id="stdMinus">–</button>
+            <div style="flex:1">
+              <label>Student</label>
+              <div id="stdCount" class="count" aria-live="polite">0</div>
+            </div>
+            <button id="stdPlus" class="primary">+</button>
+          </div>
+          <div class="counter" style="flex:1">
+            <button id="instMinus">–</button>
+            <div style="flex:1">
+              <label>Instructor</label>
+              <div id="instCount" class="count" aria-live="polite">0</div>
+            </div>
+            <button id="instPlus" class="primary">+</button>
+          </div>
+        </div>
+        <div class="btns">
+          <button id="resetLandings" class="warn">Reset Landings</button>
+        </div>
+      </section>
+
+      <section class="card" id="hobbsCard">
+        <h2>Hobbs</h2>
+        <div class="section-row">
+          <div>
+            <label for="hobbsStart">Start</label>
+            <input id="hobbsStart" class="knum" inputmode="decimal" placeholder="0.0" aria-describedby="hobbsHint">
+          </div>
+          <div>
+            <label for="hobbsStop">Stop</label>
+            <input id="hobbsStop" class="knum" inputmode="decimal" placeholder="0.0">
+          </div>
+        </div>
+        <p id="hobbsHint" class="hint">Enter decimals; result shows hours (H.DD)</p>
+        <div class="row" style="margin-top:8px">
+          <div class="stat" style="flex:1">
+            <label>Total (H.DD)</label>
+            <div id="hobbsTotal" class="value">0.00</div>
+          </div>
+          <button id="clearHobbs" class="clear-btn">Clear Hobbs</button>
+        </div>
+      </section>
+
+      <section class="card" id="tachCard">
+        <h2>Tach</h2>
+        <div class="section-row">
+          <div>
+            <label for="tachStart">Start</label>
+            <input id="tachStart" class="knum" inputmode="decimal" placeholder="0.0" aria-describedby="tachHint">
+          </div>
+          <div>
+            <label for="tachStop">Stop</label>
+            <input id="tachStop" class="knum" inputmode="decimal" placeholder="0.0">
+          </div>
+        </div>
+        <p id="tachHint" class="hint">Enter decimals; result shows hours (H.DD)</p>
+        <div class="row" style="margin-top:8px">
+          <div class="stat" style="flex:1">
+            <label>Total (H.DD)</label>
+            <div id="tachTotal" class="value">0.00</div>
+          </div>
+          <button id="clearTach" class="clear-btn">Clear Tach</button>
+        </div>
+      </section>
+
+      <section class="card" id="manualCard">
+        <h2>Manual Time (HH:MM)</h2>
+        <div class="section-row">
+          <div>
+            <label for="manStart">Start</label>
+            <input id="manStart" class="ktime" inputmode="numeric" placeholder="HH:MM">
+          </div>
+          <div>
+            <label for="manStop">Stop</label>
+            <input id="manStop" class="ktime" inputmode="numeric" placeholder="HH:MM">
+          </div>
+        </div>
+        <p class="hint">Type digits only — the colon appears automatically.</p>
+        <div class="timer-display" style="grid-template-columns: repeat(2, minmax(0,1fr)); margin-top:12px;">
+          <div class="stat">
+            <label>Elapsed (HH:MM)</label>
+            <div id="manHHMM" class="value">00:00</div>
+          </div>
+          <div class="stat">
+            <label>Elapsed (Decimal)</label>
+            <div id="manDec" class="value">0.00</div>
+          </div>
+        </div>
+        <div class="btns">
+          <button id="clearManual" class="warn">Reset Manual</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" id="summaryCard" style="margin-top:16px">
+      <h2>Summary</h2>
+      <textarea id="summaryBox" class="copybox" spellcheck="false"></textarea>
+      <div class="btns">
+        <button id="copySummary" class="primary">Copy Summary</button>
+        <button id="resetAll" class="danger">Reset All</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="tiny">Flight Timer & Log — Version 0.01</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
