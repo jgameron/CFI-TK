@@ -72,6 +72,7 @@
     }
     .stat label { display:block; font-size: .9rem; color: var(--muted); }
     .stat .value { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .timer-display .value { font-size: 3rem; }
     .btns { display:flex; gap:8px; flex-wrap: wrap; margin-top:12px; }
     button {
       font: inherit;
@@ -162,8 +163,12 @@
         <h2>Live Flight Timer</h2>
         <div class="timer-display">
           <div class="stat">
-            <label>Elapsed (HH:MM)</label>
-            <div id="elapsedHHMM" class="value">00:00</div>
+            <label>Elapsed (HH:MM:SS)</label>
+            <div id="elapsedHHMMSS" class="value">00:00:00</div>
+          </div>
+          <div class="stat">
+            <label>Paused (HH:MM:SS)</label>
+            <div id="pausedHHMMSS" class="value">00:00:00</div>
           </div>
           <div class="stat">
             <label>Elapsed (Decimal)</label>
