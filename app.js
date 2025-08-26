@@ -37,6 +37,10 @@
     copySummary: $("#copySummary"),
     resetAll: $("#resetAll"),
     installBtn: $("#installBtn"),
+    sumElapsed: $("#sumElapsed"),
+    sumHobbs: $("#sumHobbs"),
+    sumTach: $("#sumTach"),
+    sumManual: $("#sumManual"),
   };
 
   const initial = {
@@ -161,7 +165,9 @@
   function renderTimer(){
     const ms = getElapsedMs();
     els.elapsedHHMMSS.textContent = msToHHMMSS(ms);
-    els.elapsedDec.textContent = msToDec(ms);
+    const dec = msToDec(ms);
+    els.elapsedDec.textContent = dec;
+    els.sumElapsed.textContent = dec;
     const pms = getPausedMs();
     els.pausedHHMMSS.textContent = msToHHMMSS(pms);
     const running = st.timer.running;
@@ -240,12 +246,16 @@
   function renderHobbs(){
     els.hobbsStart.value = st.hobbs.start;
     els.hobbsStop.value = st.hobbs.stop;
-    els.hobbsTotal.textContent = calcDecimal(st.hobbs.start, st.hobbs.stop);
+    const total = calcDecimal(st.hobbs.start, st.hobbs.stop);
+    els.hobbsTotal.textContent = total;
+    els.sumHobbs.textContent = total;
   }
   function renderTach(){
     els.tachStart.value = st.tach.start;
     els.tachStop.value = st.tach.stop;
-    els.tachTotal.textContent = calcDecimal(st.tach.start, st.tach.stop);
+    const total = calcDecimal(st.tach.start, st.tach.stop);
+    els.tachTotal.textContent = total;
+    els.sumTach.textContent = total;
   }
 
   function bindDecimalInput(el, path){
@@ -324,6 +334,7 @@
     }
     els.manHHMM.textContent = hhmm;
     els.manDec.textContent = dec;
+    els.sumManual.textContent = dec;
   }
 
   bindTimeInput(els.manStart, 'manual.start');

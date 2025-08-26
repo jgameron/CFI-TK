@@ -186,7 +186,7 @@
         </div>
         <div class="btns">
           <button id="startResumeBtn" class="primary">Start</button>
-          <button id="pauseBtn">Pause</button>
+          <button id="pauseBtn" class="warn">Pause</button>
           <button id="resetTimerBtn" class="danger">Reset</button>
           <span id="timerState" class="pill stopped">stopped</span>
         </div>
@@ -285,6 +285,28 @@
         </div>
         <div class="btns">
           <button id="clearManual" class="danger">Reset Manual</button>
+        </div>
+      </section>
+
+      <section class="card" id="liveSummaryCard">
+        <h2>Live Summary</h2>
+        <div class="timer-display">
+          <div class="stat">
+            <label>Elapsed (Decimal)</label>
+            <div id="sumElapsed" class="value">0.00</div>
+          </div>
+          <div class="stat">
+            <label>Hobbs (H.DD)</label>
+            <div id="sumHobbs" class="value">0.00</div>
+          </div>
+          <div class="stat">
+            <label>Tach (H.DD)</label>
+            <div id="sumTach" class="value">0.00</div>
+          </div>
+          <div class="stat">
+            <label>Manual (Decimal)</label>
+            <div id="sumManual" class="value">0.00</div>
+          </div>
         </div>
       </section>
     </div>
