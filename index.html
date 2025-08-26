@@ -89,7 +89,7 @@
     button:active { transform: translateY(1px); }
     button.primary { background: #0b2a18; border-color: #164e2e; }
     button.primary:hover { background: #0d3a20; }
-    button.warn { background: #2a1f0b; border-color: #4e3b16; }
+    button.warn { background: #f59e0b; border-color: #b45309; color: #000; }
     button.danger { background: #2a0b0b; border-color: #4e1616; }
     button.ghost { background: transparent; }
     button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -109,18 +109,18 @@
     .counter { display:flex; gap: 8px; align-items:center; }
     .counter + .counter { margin-top: 12px; }
     .count {
-      min-width: 60px;
+      min-width: 48px;
       text-align: center;
       font-size: 1.5rem;
       font-weight: 700;
-      padding: 6px 10px;
+      padding: 6px 8px;
       border-radius: 12px;
       background: #0b1224;
       border: 1px solid var(--border);
     }
     .counter button {
-      font-size: 1.6rem;
-      padding: 16px 22px;
+      font-size: 2rem;
+      padding: 20px 24px;
     }
     .copybox {
       width: 100%; min-height: 120px; resize: vertical;
@@ -132,13 +132,6 @@
     footer { color: var(--muted); text-align: center; padding: 24px; }
     .tiny { font-size: .8rem; }
     .install-banner { display:none; margin-left: auto; }
-    .clear-btn {
-      border: 1px dashed var(--border);
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--muted);
-    }
     .pill {
       display:inline-block; padding: 2px 8px; border-radius: 999px;
       border: 1px solid var(--border); color: var(--muted); font-size: .75rem;
@@ -186,7 +179,7 @@
       <section class="card" id="landingsCard">
         <h2>Landings</h2>
         <div class="counter">
-          <button id="stdMinus">–</button>
+          <button id="stdMinus" class="warn">–</button>
           <div style="flex:1">
             <label>Student</label>
             <div id="stdCount" class="count" aria-live="polite">0</div>
@@ -194,7 +187,7 @@
           <button id="stdPlus" class="primary">+</button>
         </div>
         <div class="counter">
-          <button id="instMinus">–</button>
+          <button id="instMinus" class="warn">–</button>
           <div style="flex:1">
             <label>Instructor</label>
             <div id="instCount" class="count" aria-live="polite">0</div>
@@ -202,7 +195,7 @@
           <button id="instPlus" class="primary">+</button>
         </div>
         <div class="btns">
-          <button id="resetLandings" class="warn">Reset Landings</button>
+          <button id="resetLandings" class="danger">Reset Landings</button>
         </div>
       </section>
 
@@ -224,7 +217,7 @@
             <label>Total (H.DD)</label>
             <div id="hobbsTotal" class="value">0.00</div>
           </div>
-          <button id="clearHobbs" class="clear-btn">Clear Hobbs</button>
+          <button id="clearHobbs" class="danger">Clear Hobbs</button>
         </div>
       </section>
 
@@ -246,7 +239,7 @@
             <label>Total (H.DD)</label>
             <div id="tachTotal" class="value">0.00</div>
           </div>
-          <button id="clearTach" class="clear-btn">Clear Tach</button>
+          <button id="clearTach" class="danger">Clear Tach</button>
         </div>
       </section>
 
@@ -274,7 +267,7 @@
           </div>
         </div>
         <div class="btns">
-          <button id="clearManual" class="warn">Reset Manual</button>
+          <button id="clearManual" class="danger">Reset Manual</button>
         </div>
       </section>
     </div>
