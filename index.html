@@ -97,13 +97,18 @@
 
     .knum, .ktime {
       width: 100%;
-      padding: 14px 16px;
-      border-radius: 14px;
+      padding: 20px 24px;
+      border-radius: 18px;
       border: 1px solid var(--border);
       background: #0c1326;
       color: var(--text);
-      font-size: 1.1rem;
+      font-size: 1.35rem;
       font-variant-numeric: tabular-nums;
+    }
+    #hobbsCard .section-row label,
+    #tachCard .section-row label,
+    #manualCard .section-row label {
+      font-size: 1.1rem;
     }
     .hint { color: var(--muted); font-size: .8rem; }
     .section-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -295,7 +300,8 @@
   </main>
 
   <footer>
-    <div class="tiny">Flight Timer & Log — Version 0.01</div>
+    <div class="tiny">Created by James Gameron</div>
+    <div class="tiny">Flight Timer & Log — Version 1.0</div>
   </footer>
 
   <script src="app.js"></script>

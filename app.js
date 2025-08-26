@@ -1,8 +1,8 @@
-/* Flight Timer & Log PWA — Version 0.01 */
+/* Flight Timer & Log PWA — Version 1.0 */
 (function(){
 
   const $ = (sel) => document.querySelector(sel);
-  const stateKey = "ftl.state.v0.01";
+  const stateKey = "ftl.state.v1.0";
 
   const els = {
     elapsedHHMMSS: $("#elapsedHHMMSS"),
@@ -339,7 +339,7 @@
   function renderSummary(){
     const lines = [];
     lines.push("Flight Timer & Log — Summary");
-    lines.push("Version: 0.01");
+    lines.push("Version: 1.0");
     const updated = new Date(st.meta.updatedAt);
     lines.push("Saved: " + updated.toLocaleString());
     lines.push("");
