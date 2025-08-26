@@ -33,12 +33,6 @@
       line-height: 1.5;
     }
     header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: linear-gradient(180deg, rgba(15,23,42,.95), rgba(15,23,42,.75));
-      backdrop-filter: blur(6px);
-      border-bottom: 1px solid var(--border);
     }
     .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
     h1 { font-size: 1.35rem; margin: 0 0 6px; font-weight: 700; }
@@ -115,14 +109,18 @@
     .counter { display:flex; gap: 8px; align-items:center; }
     .counter + .counter { margin-top: 12px; }
     .count {
-      min-width: 80px;
+      min-width: 60px;
       text-align: center;
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      padding: 10px 14px;
+      padding: 6px 10px;
       border-radius: 12px;
       background: #0b1224;
       border: 1px solid var(--border);
+    }
+    .counter button {
+      font-size: 1.6rem;
+      padding: 16px 22px;
     }
     .copybox {
       width: 100%; min-height: 120px; resize: vertical;
@@ -148,17 +146,19 @@
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="row">
-        <div>
-          <h1>Flight Timer & Log</h1>
-          <p class="subtitle">Offline PWA — your data stays in local storage</p>
-        </div>
-        <button id="installBtn" class="install-banner">Install App</button>
+  <header class="wrap">
+    <div class="row">
+      <div>
+        <h1>Flight Timer & Log</h1>
+        <p class="subtitle">Offline PWA — your data stays in local storage</p>
       </div>
+      <button id="installBtn" class="install-banner">Install App</button>
+    </div>
+  </header>
 
-      <div class="card" id="timerCard" aria-live="polite">
+  <main class="wrap">
+    <div class="grid">
+      <section class="card" id="timerCard" aria-live="polite">
         <h2>Live Flight Timer</h2>
         <div class="timer-display">
           <div class="stat">
@@ -181,12 +181,8 @@
           <span id="timerState" class="pill">stopped</span>
         </div>
         <p class="hint">Pauses don’t count toward elapsed time. Timer persists if you close the tab.</p>
-      </div>
-    </div>
-  </header>
+      </section>
 
-  <main class="wrap">
-    <div class="grid">
       <section class="card" id="landingsCard">
         <h2>Landings</h2>
         <div class="counter">
