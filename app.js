@@ -29,6 +29,7 @@
     tachTotal: $("#tachTotal"),
     clearTach: $("#clearTach"),
     dueBack: $("#dueBack"),
+    studentName: $("#studentName"),
     manStart: $("#manStart"),
     manStop: $("#manStop"),
     manHHMM: $("#manHHMM"),
@@ -62,6 +63,7 @@
     hobbs: { start: "", stop: "" },
     tach: { start: "", stop: "" },
     due: { back: "" },
+    student: { name: "" },
     manual: { start: "", stop: "" },
     meta: { updatedAt: new Date().toISOString() },
   };
@@ -355,9 +357,23 @@
   bindTimeInput(els.dueBack, 'due.back');
   renderDue();
 
+  // ==== STUDENT NAME ====
+  function renderStudent(){
+    els.studentName.value = st.student.name;
+  }
+  els.studentName.addEventListener("input", (e)=>{
+    st.student.name = e.target.value;
+    save();
+  });
+  renderStudent();
+
   // ==== SUMMARY ====
   function renderSummary(){
     const lines = [];
+    if (st.student.name) {
+      lines.push("Student: " + st.student.name);
+      lines.push("");
+    }
     lines.push("Flight Timer & Log — Summary");
     lines.push("Version: 1.0");
     const updated = new Date(st.meta.updatedAt);
