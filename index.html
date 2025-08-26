@@ -33,12 +33,6 @@
       line-height: 1.5;
     }
     header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: linear-gradient(180deg, rgba(15,23,42,.95), rgba(15,23,42,.75));
-      backdrop-filter: blur(6px);
-      border-bottom: 1px solid var(--border);
     }
     .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
     h1 { font-size: 1.35rem; margin: 0 0 6px; font-weight: 700; }
@@ -48,9 +42,6 @@
       display: grid;
       gap: 16px;
       grid-template-columns: 1fr;
-    }
-    @media (min-width: 900px) {
-      .grid { grid-template-columns: 1fr 1fr; }
     }
 
     .card {
@@ -66,8 +57,9 @@
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .row > * { flex: 1 1 auto; }
     .timer-display {
-      display: grid; gap: 8px;
-      grid-template-columns: repeat(3, minmax(0,1fr));
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
       align-items: center;
       text-align: center;
       margin-top: 10px;
@@ -76,21 +68,22 @@
       background: #0b1224;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
+      padding: 16px;
     }
-    .stat label { display:block; font-size: .8rem; color: var(--muted); }
-    .stat .value { font-size: 1.6rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .stat label { display:block; font-size: .9rem; color: var(--muted); }
+    .stat .value { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
     .btns { display:flex; gap:8px; flex-wrap: wrap; margin-top:12px; }
     button {
       font: inherit;
-      padding: 10px 14px;
-      border-radius: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
       border: 1px solid var(--border);
       background: #0c1326;
       color: var(--text);
       cursor: pointer;
       transition: transform .02s ease, background .15s ease;
       user-select: none;
+      font-size: 1.05rem;
     }
     button:hover { background: #111a33; }
     button:active { transform: translateY(1px); }
@@ -103,26 +96,31 @@
 
     .knum, .ktime {
       width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
       border: 1px solid var(--border);
       background: #0c1326;
       color: var(--text);
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-variant-numeric: tabular-nums;
     }
     .hint { color: var(--muted); font-size: .8rem; }
     .section-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .counter { display:flex; gap: 8px; align-items:center; }
+    .counter + .counter { margin-top: 12px; }
     .count {
-      min-width: 64px;
+      min-width: 60px;
       text-align: center;
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      padding: 8px 12px;
-      border-radius: 10px;
+      padding: 6px 10px;
+      border-radius: 12px;
       background: #0b1224;
       border: 1px solid var(--border);
+    }
+    .counter button {
+      font-size: 1.6rem;
+      padding: 16px 22px;
     }
     .copybox {
       width: 100%; min-height: 120px; resize: vertical;
@@ -148,17 +146,19 @@
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="row">
-        <div>
-          <h1>Flight Timer & Log</h1>
-          <p class="subtitle">Offline PWA — your data stays in local storage</p>
-        </div>
-        <button id="installBtn" class="install-banner">Install App</button>
+  <header class="wrap">
+    <div class="row">
+      <div>
+        <h1>Flight Timer & Log</h1>
+        <p class="subtitle">Offline PWA — your data stays in local storage</p>
       </div>
+      <button id="installBtn" class="install-banner">Install App</button>
+    </div>
+  </header>
 
-      <div class="card" id="timerCard" aria-live="polite">
+  <main class="wrap">
+    <div class="grid">
+      <section class="card" id="timerCard" aria-live="polite">
         <h2>Live Flight Timer</h2>
         <div class="timer-display">
           <div class="stat">
@@ -181,31 +181,25 @@
           <span id="timerState" class="pill">stopped</span>
         </div>
         <p class="hint">Pauses don’t count toward elapsed time. Timer persists if you close the tab.</p>
-      </div>
-    </div>
-  </header>
+      </section>
 
-  <main class="wrap">
-    <div class="grid">
       <section class="card" id="landingsCard">
         <h2>Landings</h2>
-        <div class="row">
-          <div class="counter" style="flex:1">
-            <button id="stdMinus">–</button>
-            <div style="flex:1">
-              <label>Student</label>
-              <div id="stdCount" class="count" aria-live="polite">0</div>
-            </div>
-            <button id="stdPlus" class="primary">+</button>
+        <div class="counter">
+          <button id="stdMinus">–</button>
+          <div style="flex:1">
+            <label>Student</label>
+            <div id="stdCount" class="count" aria-live="polite">0</div>
           </div>
-          <div class="counter" style="flex:1">
-            <button id="instMinus">–</button>
-            <div style="flex:1">
-              <label>Instructor</label>
-              <div id="instCount" class="count" aria-live="polite">0</div>
-            </div>
-            <button id="instPlus" class="primary">+</button>
+          <button id="stdPlus" class="primary">+</button>
+        </div>
+        <div class="counter">
+          <button id="instMinus">–</button>
+          <div style="flex:1">
+            <label>Instructor</label>
+            <div id="instCount" class="count" aria-live="polite">0</div>
           </div>
+          <button id="instPlus" class="primary">+</button>
         </div>
         <div class="btns">
           <button id="resetLandings" class="warn">Reset Landings</button>
@@ -269,7 +263,7 @@
           </div>
         </div>
         <p class="hint">Type digits only — the colon appears automatically.</p>
-        <div class="timer-display" style="grid-template-columns: repeat(2, minmax(0,1fr)); margin-top:12px;">
+        <div class="timer-display" style="margin-top:12px;">
           <div class="stat">
             <label>Elapsed (HH:MM)</label>
             <div id="manHHMM" class="value">00:00</div>
