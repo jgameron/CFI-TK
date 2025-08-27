@@ -72,6 +72,7 @@
     }
     .stat label { display:block; font-size: .9rem; color: var(--muted); }
     .stat .value { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .stat .value.toggle { cursor: pointer; }
     .timer-display .value { font-size: 3rem; }
     .btns { display:flex; gap:8px; flex-wrap: wrap; margin-top:12px; }
     button {
@@ -179,8 +180,8 @@
             <div id="elapsedHHMMSS" class="value">00:00:00</div>
           </div>
           <div class="stat">
-            <label>Paused (HH:MM:SS)</label>
-            <div id="pausedHHMMSS" class="value">00:00:00</div>
+            <label id="pausedLabel">Paused (HH:MM:SS)</label>
+            <div id="pausedHHMMSS" class="value toggle">00:00:00</div>
           </div>
           <div class="stat">
             <label>Elapsed (Decimal)</label>
