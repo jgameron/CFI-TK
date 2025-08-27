@@ -7,6 +7,7 @@
   const els = {
     elapsedHHMMSS: $("#elapsedHHMMSS"),
     pausedHHMMSS: $("#pausedHHMMSS"),
+    pausedLabel: $("#pausedLabel"),
     elapsedDec: $("#elapsedDec"),
     startedAt: $("#startedAt"),
     startResumeBtn: $("#startResumeBtn"),
@@ -102,6 +103,7 @@
 
   // ==== TIMER ====
   let tickHandle = null;
+  let showPausedDec = false;
 
   function now(){
     return Date.now();
@@ -173,7 +175,13 @@
     els.elapsedDec.textContent = dec;
     els.sumElapsed.textContent = dec;
     const pms = getPausedMs();
-    els.pausedHHMMSS.textContent = msToHHMMSS(pms);
+    if(showPausedDec){
+      els.pausedHHMMSS.textContent = msToDec(pms);
+      els.pausedLabel.textContent = "Paused (Decimal)";
+    } else {
+      els.pausedHHMMSS.textContent = msToHHMMSS(pms);
+      els.pausedLabel.textContent = "Paused (HH:MM:SS)";
+    }
     const running = st.timer.running;
     els.timerState.textContent = running ? "running" : "stopped";
     els.timerState.classList.toggle("running", running);
@@ -210,6 +218,10 @@
   els.pauseBtn.addEventListener("click", pauseTimer);
   els.resetTimerBtn.addEventListener("click", ()=>{
     if(confirm("Reset the live timer?")) resetTimer();
+  });
+  els.pausedHHMMSS.addEventListener("click", ()=>{
+    showPausedDec = !showPausedDec;
+    renderTimer();
   });
 
   // Resume ticking if re-opened
