@@ -535,6 +535,7 @@
             }
           });
         });
+        reg.update();
       }).catch((err)=>console.warn('SW registration failed', err));
 
       let refreshing = false;
