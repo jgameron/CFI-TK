@@ -1,14 +1,14 @@
-/* Flight Timer & Log PWA — Version 1.1 */
+/* Flight Timer & Log PWA — Version 1.12 */
 (function(){
 
   const $ = (sel) => document.querySelector(sel);
-  const stateKey = "ftl.state.v1.1";
+  const stateKey = "ftl.state.v1.12";
 
   const els = {
     elapsedHHMMSS: $("#elapsedHHMMSS"),
+    elapsedLabel: $("#elapsedLabel"),
     pausedHHMMSS: $("#pausedHHMMSS"),
     pausedLabel: $("#pausedLabel"),
-    elapsedDec: $("#elapsedDec"),
     startedAt: $("#startedAt"),
     startResumeBtn: $("#startResumeBtn"),
     pauseBtn: $("#pauseBtn"),
@@ -105,6 +105,7 @@
   // ==== TIMER ====
   let tickHandle = null;
   let showPausedDec = false;
+  let showElapsedDec = false;
 
   function now(){
     return Date.now();
@@ -171,9 +172,15 @@
 
   function renderTimer(){
     const ms = getElapsedMs();
-    els.elapsedHHMMSS.textContent = msToHHMMSS(ms);
+    const hhmmss = msToHHMMSS(ms);
     const dec = msToDec(ms);
-    els.elapsedDec.textContent = dec;
+    if(showElapsedDec){
+      els.elapsedHHMMSS.textContent = dec;
+      els.elapsedLabel.textContent = "Elapsed (Decimal)";
+    } else {
+      els.elapsedHHMMSS.textContent = hhmmss;
+      els.elapsedLabel.textContent = "Elapsed (HH:MM:SS)";
+    }
     els.sumElapsed.textContent = dec;
     const pms = getPausedMs();
     if(showPausedDec){
@@ -219,6 +226,10 @@
   els.pauseBtn.addEventListener("click", pauseTimer);
   els.resetTimerBtn.addEventListener("click", ()=>{
     if(confirm("Reset the live timer?")) resetTimer();
+  });
+  els.elapsedHHMMSS.addEventListener("click", ()=>{
+    showElapsedDec = !showElapsedDec;
+    renderTimer();
   });
   els.pausedHHMMSS.addEventListener("click", ()=>{
     showPausedDec = !showPausedDec;
@@ -388,14 +399,15 @@
       lines.push("");
     }
     lines.push("Flight Timer & Log — Summary");
-    lines.push("Version: 1.1");
+    lines.push("Version: 1.12");
     const updated = new Date(st.meta.updatedAt);
     lines.push("Saved: " + updated.toLocaleString());
     lines.push("");
     // Live timer
     if (st.timer.firstStartMs) {
-      const timerHHMM = document.getElementById("elapsedHHMMSS").textContent;
-      const timerDec = document.getElementById("elapsedDec").textContent;
+      const ms = getElapsedMs();
+      const timerHHMM = msToHHMMSS(ms);
+      const timerDec = msToDec(ms);
       const started = document.getElementById("startedAt").textContent;
       lines.push("[Live Timer]");
       lines.push("  Started: " + started);
