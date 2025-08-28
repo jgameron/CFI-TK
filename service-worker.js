@@ -27,16 +27,26 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  // Only handle GET
+  // Always serve the app shell for navigation requests so the
+  // interface works fully offline.
+  if (req.mode === "navigate") {
+    event.respondWith(
+      caches.match("./index.html").then((cached) => cached || fetch("./index.html"))
+    );
+    return;
+  }
+  // Only handle GET for other requests
   if (req.method !== "GET") return;
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
-      return fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-        return res;
-      }).catch(() => caches.match("./index.html"));
+      return fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match("./index.html"));
     })
   );
 });
