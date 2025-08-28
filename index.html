@@ -138,7 +138,8 @@
     }
     footer { color: var(--muted); text-align: center; padding: 24px; }
     .tiny { font-size: .8rem; }
-    .install-banner { display:none; margin-left: auto; }
+    .install-banner { display:none; }
+    header .install-banner { margin-left: auto; }
     .pill {
       display:inline-flex; align-items:center; gap:4px; padding: 2px 8px; border-radius: 999px;
       border: 1px solid var(--border); color: var(--muted); font-size: .75rem; line-height:1;
@@ -337,6 +338,7 @@
   </main>
 
   <footer>
+    <button id="updateBtn" class="install-banner">Update Available</button>
     <div class="tiny">Created by James Gameron</div>
     <div class="tiny">Flight Timer & Log — Version 1.0</div>
   </footer>

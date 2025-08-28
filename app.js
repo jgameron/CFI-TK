@@ -40,6 +40,7 @@
     copySummary: $("#copySummary"),
     resetAll: $("#resetAll"),
     installBtn: $("#installBtn"),
+    updateBtn: $("#updateBtn"),
     sumElapsed: $("#sumElapsed"),
     sumHobbs: $("#sumHobbs"),
     sumTach: $("#sumTach"),
@@ -516,8 +517,33 @@
   // ==== SW REGISTER ====
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
-      navigator.serviceWorker.register('service-worker.js')
-        .catch((err)=>console.warn('SW registration failed', err));
+      navigator.serviceWorker.register('service-worker.js').then((reg)=>{
+        function showUpdate(worker){
+          els.updateBtn.style.display = 'inline-block';
+          els.updateBtn.addEventListener('click', ()=>{
+            worker.postMessage({ type: 'SKIP_WAITING' });
+          }, { once: true });
+        }
+        if(reg.waiting){
+          showUpdate(reg.waiting);
+        }
+        reg.addEventListener('updatefound', ()=>{
+          const nw = reg.installing;
+          nw.addEventListener('statechange', ()=>{
+            if(nw.state === 'installed' && navigator.serviceWorker.controller){
+              showUpdate(nw);
+            }
+          });
+        });
+        reg.update();
+      }).catch((err)=>console.warn('SW registration failed', err));
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+        if(refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
     });
   }
 
