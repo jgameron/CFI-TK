@@ -280,12 +280,8 @@
         <p class="hint">Type digits only — the colon appears automatically.</p>
         <div class="timer-display" style="margin-top:12px;">
           <div class="stat">
-            <label>Elapsed (HH:MM)</label>
-            <div id="manHHMM" class="value">00:00</div>
-          </div>
-          <div class="stat">
-            <label>Elapsed (Decimal)</label>
-            <div id="manDec" class="value">0.00</div>
+            <label id="manElapsedLabel">Elapsed (HH:MM)</label>
+            <div id="manElapsed" class="value toggle">00:00</div>
           </div>
         </div>
         <div class="btns">
@@ -304,20 +300,20 @@
         <h2>Live Summary</h2>
         <div class="timer-display">
           <div class="stat">
-            <label>Elapsed (Decimal)</label>
-            <div id="sumElapsed" class="value">0.00</div>
+            <label id="sumElapsedLabel">Elapsed (Decimal)</label>
+            <div id="sumElapsed" class="value toggle">0.00</div>
           </div>
           <div class="stat">
-            <label>Hobbs (H.DD)</label>
-            <div id="sumHobbs" class="value">0.00</div>
+            <label id="sumHobbsLabel">Hobbs (H.DD)</label>
+            <div id="sumHobbs" class="value toggle">0.00</div>
           </div>
           <div class="stat">
-            <label>Tach (H.DD)</label>
-            <div id="sumTach" class="value">0.00</div>
+            <label id="sumTachLabel">Tach (H.DD)</label>
+            <div id="sumTach" class="value toggle">0.00</div>
           </div>
           <div class="stat">
-            <label>Manual (Decimal)</label>
-            <div id="sumManual" class="value">0.00</div>
+            <label id="sumManualLabel">Manual (Decimal)</label>
+            <div id="sumManual" class="value toggle">0.00</div>
           </div>
         </div>
       </section>

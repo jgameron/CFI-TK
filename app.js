@@ -33,8 +33,8 @@
     studentName: $("#studentName"),
     manStart: $("#manStart"),
     manStop: $("#manStop"),
-    manHHMM: $("#manHHMM"),
-    manDec: $("#manDec"),
+    manElapsed: $("#manElapsed"),
+    manElapsedLabel: $("#manElapsedLabel"),
     clearManual: $("#clearManual"),
     summaryBox: $("#summaryBox"),
     copySummary: $("#copySummary"),
@@ -42,9 +42,13 @@
     installBtn: $("#installBtn"),
     updateBtn: $("#updateBtn"),
     sumElapsed: $("#sumElapsed"),
+    sumElapsedLabel: $("#sumElapsedLabel"),
     sumHobbs: $("#sumHobbs"),
+    sumHobbsLabel: $("#sumHobbsLabel"),
     sumTach: $("#sumTach"),
+    sumTachLabel: $("#sumTachLabel"),
     sumManual: $("#sumManual"),
+    sumManualLabel: $("#sumManualLabel"),
   };
 
   const initial = {
@@ -106,6 +110,11 @@
   let tickHandle = null;
   let showPausedDec = false;
   let showElapsedDec = false;
+  let showManDec = false;
+  let showSumElapsedDec = true;
+  let showSumHobbsDec = true;
+  let showSumTachDec = true;
+  let showSumManualDec = true;
 
   function now(){
     return Date.now();
@@ -170,6 +179,15 @@
     return dec.toFixed(2);
   }
 
+  function decToHHMM(decStr){
+    const dec = parseFloat(decStr);
+    if(!Number.isFinite(dec)) return "00:00";
+    const totalMin = Math.round(dec * 60);
+    const hh = Math.floor(totalMin / 60);
+    const mm = totalMin % 60;
+    return String(hh).padStart(2,'0') + ":" + String(mm).padStart(2,'0');
+  }
+
   function renderTimer(){
     const ms = getElapsedMs();
     const hhmmss = msToHHMMSS(ms);
@@ -181,7 +199,13 @@
       els.elapsedHHMMSS.textContent = hhmmss;
       els.elapsedLabel.textContent = "Elapsed (HH:MM:SS)";
     }
-    els.sumElapsed.textContent = dec;
+    if(showSumElapsedDec){
+      els.sumElapsed.textContent = dec;
+      els.sumElapsedLabel.textContent = "Elapsed (Decimal)";
+    } else {
+      els.sumElapsed.textContent = hhmmss;
+      els.sumElapsedLabel.textContent = "Elapsed (HH:MM:SS)";
+    }
     const pms = getPausedMs();
     if(showPausedDec){
       els.pausedHHMMSS.textContent = msToDec(pms);
@@ -235,6 +259,10 @@
     showPausedDec = !showPausedDec;
     renderTimer();
   });
+  els.sumElapsed.addEventListener("click", ()=>{
+    showSumElapsedDec = !showSumElapsedDec;
+    renderTimer();
+  });
 
   // Resume ticking if re-opened
   if(st.timer.running || st.timer.lastPauseMs) startTicking();
@@ -276,14 +304,26 @@
     els.hobbsStop.value = st.hobbs.stop;
     const total = calcDecimal(st.hobbs.start, st.hobbs.stop);
     els.hobbsTotal.textContent = total;
-    els.sumHobbs.textContent = total;
+    if(showSumHobbsDec){
+      els.sumHobbs.textContent = total;
+      els.sumHobbsLabel.textContent = "Hobbs (Decimal)";
+    } else {
+      els.sumHobbs.textContent = decToHHMM(total);
+      els.sumHobbsLabel.textContent = "Hobbs (HH:MM)";
+    }
   }
   function renderTach(){
     els.tachStart.value = st.tach.start;
     els.tachStop.value = st.tach.stop;
     const total = calcDecimal(st.tach.start, st.tach.stop);
     els.tachTotal.textContent = total;
-    els.sumTach.textContent = total;
+    if(showSumTachDec){
+      els.sumTach.textContent = total;
+      els.sumTachLabel.textContent = "Tach (Decimal)";
+    } else {
+      els.sumTach.textContent = decToHHMM(total);
+      els.sumTachLabel.textContent = "Tach (HH:MM)";
+    }
   }
 
   function bindDecimalInput(el, path){
@@ -321,6 +361,14 @@
   });
 
   renderHobbs(); renderTach();
+  els.sumHobbs.addEventListener("click", ()=>{
+    showSumHobbsDec = !showSumHobbsDec;
+    renderHobbs();
+  });
+  els.sumTach.addEventListener("click", ()=>{
+    showSumTachDec = !showSumTachDec;
+    renderTach();
+  });
 
   // ==== MANUAL TIME (HH:MM) ====
   function bindTimeInput(el, path){
@@ -360,13 +408,32 @@
       hhmm = String(hh).padStart(2,'0') + ":" + String(mm).padStart(2,'0');
       dec = (diff/60).toFixed(2);
     }
-    els.manHHMM.textContent = hhmm;
-    els.manDec.textContent = dec;
-    els.sumManual.textContent = dec;
+    if(showManDec){
+      els.manElapsed.textContent = dec;
+      els.manElapsedLabel.textContent = "Elapsed (Decimal)";
+    } else {
+      els.manElapsed.textContent = hhmm;
+      els.manElapsedLabel.textContent = "Elapsed (HH:MM)";
+    }
+    if(showSumManualDec){
+      els.sumManual.textContent = dec;
+      els.sumManualLabel.textContent = "Manual (Decimal)";
+    } else {
+      els.sumManual.textContent = hhmm;
+      els.sumManualLabel.textContent = "Manual (HH:MM)";
+    }
   }
 
   bindTimeInput(els.manStart, 'manual.start');
   bindTimeInput(els.manStop, 'manual.stop');
+  els.manElapsed.addEventListener("click", ()=>{
+    showManDec = !showManDec;
+    renderManual();
+  });
+  els.sumManual.addEventListener("click", ()=>{
+    showSumManualDec = !showSumManualDec;
+    renderManual();
+  });
   els.clearManual.addEventListener("click", ()=>{
     if(confirm("Reset manual times?")) {
       st.manual = { start: "", stop: "" }; save(); renderManual();
@@ -453,8 +520,17 @@
     // Manual
     const manStart = st.manual.start;
     const manStop = st.manual.stop;
-    const manHHMM = document.getElementById("manHHMM").textContent;
-    const manDec = document.getElementById("manDec").textContent;
+    let manHHMM = "00:00", manDec = "0.00";
+    const ma = hhmmToMinutes(manStart);
+    const mb = hhmmToMinutes(manStop);
+    if(ma != null && mb != null){
+      let diff = mb - ma;
+      if(diff < 0) diff += 24*60;
+      const hh = Math.floor(diff/60);
+      const mm = diff % 60;
+      manHHMM = String(hh).padStart(2,'0') + ":" + String(mm).padStart(2,'0');
+      manDec = (diff/60).toFixed(2);
+    }
     if (manStart || manStop) {
       lines.push("[Manual Time]");
       if (manStart) lines.push("  Start: " + manStart);
