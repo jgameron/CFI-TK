@@ -1,5 +1,5 @@
-// Flight Timer & Log — Service Worker v1.1
-const CACHE_NAME = "ftl-cache-v1.1";
+// Flight Timer & Log — Service Worker v1.12
+const CACHE_NAME = "ftl-cache-v1.12";
 const ASSETS = [
   "./",
   "./index.html",

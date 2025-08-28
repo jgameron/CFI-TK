@@ -1,4 +1,4 @@
-# Flight Timer & Log PWA (v1.1)
+# Flight Timer & Log PWA (v1.12)
 
 A lightweight offline-first PWA that logs flight time, landings, Hobbs/Tach totals, and a copyable summary. Data is saved to `localStorage`.
 
@@ -10,7 +10,7 @@ A lightweight offline-first PWA that logs flight time, landings, Hobbs/Tach tota
 - **Resets** per field/section and **Reset All** with confirmations.
 - **Summary** builder with one-click **Copy**.
 - True **PWA**: `manifest.webmanifest` + `service-worker.js` for offline.
-- Version footer: **1.1**.
+- Version footer: **1.12**.
 
 ## Run locally
 Just open `index.html` in a local web server (service workers need http/https). For example:

@@ -177,16 +177,12 @@
         <h2>Live Flight Timer</h2>
         <div class="timer-display">
           <div class="stat">
-            <label>Elapsed (HH:MM:SS)</label>
-            <div id="elapsedHHMMSS" class="value">00:00:00</div>
+            <label id="elapsedLabel">Elapsed (HH:MM:SS)</label>
+            <div id="elapsedHHMMSS" class="value toggle">00:00:00</div>
           </div>
           <div class="stat">
             <label id="pausedLabel">Paused (HH:MM:SS)</label>
             <div id="pausedHHMMSS" class="value toggle">00:00:00</div>
-          </div>
-          <div class="stat">
-            <label>Elapsed (Decimal)</label>
-            <div id="elapsedDec" class="value">0.00</div>
           </div>
           <div class="stat">
             <label>Started (Local)</label>
@@ -340,7 +336,7 @@
   <footer>
     <button id="updateBtn" class="install-banner">Update Available</button>
     <div class="tiny">Created by James Gameron</div>
-    <div class="tiny">Flight Timer & Log — Version 1.1</div>
+    <div class="tiny">Flight Timer & Log — Version 1.12</div>
   </footer>
 
   <script src="app.js"></script>
