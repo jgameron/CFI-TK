@@ -44,16 +44,22 @@ self.addEventListener("fetch", (event) => {
   }
   // Only handle GET for other requests
   if (req.method !== "GET") return;
+
   event.respondWith(
     caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
+      const fetchPromise = fetch(req)
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match("./index.html"));
+        .catch(() => cached || caches.match("./index.html"));
+
+      if (cached) {
+        event.waitUntil(fetchPromise);
+        return cached;
+      }
+      return fetchPromise;
     })
   );
 });
