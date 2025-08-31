@@ -623,7 +623,8 @@
             }
           });
         });
-        reg.update();
+        // Attempt to check for updates but ignore failures (e.g., offline)
+        reg.update().catch(() => {});
       }).catch((err)=>console.warn('SW registration failed', err));
 
       let refreshing = false;

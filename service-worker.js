@@ -12,7 +12,9 @@ const ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -34,26 +36,31 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  // Always serve the app shell for navigation requests so the
-  // interface works fully offline.
+
+  // Only handle GET requests within our origin
+  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+
+  // For navigation, always return the cached shell to remain fully offline
   if (req.mode === "navigate") {
     event.respondWith(
-      caches.match("./index.html").then((cached) => cached || fetch("./index.html"))
+      caches.match("index.html").then((cached) =>
+        cached || fetch(req).catch(() => caches.match("index.html"))
+      )
     );
     return;
   }
-  // Only handle GET for other requests
-  if (req.method !== "GET") return;
+
   event.respondWith(
     caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
+      const networkFetch = fetch(req)
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match("./index.html"));
+        .catch(() => caches.match("index.html"));
+
+      return cached || networkFetch;
     })
   );
 });
