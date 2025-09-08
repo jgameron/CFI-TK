@@ -542,6 +542,13 @@
   }
   renderSummary();
 
+  // Persist state when the page is closed or hidden so that progress is
+  // preserved during offline use.
+  window.addEventListener('beforeunload', save);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') save();
+  });
+
   els.copySummary.addEventListener("click", async ()=>{
     try {
       await navigator.clipboard.writeText(els.summaryBox.value);
