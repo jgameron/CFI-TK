@@ -11,6 +11,7 @@ A lightweight offline-first PWA that logs flight time, landings, Hobbs/Tach tota
 - **Summary** builder with one-click **Copy**.
 - True **PWA**: `manifest.webmanifest` + `service-worker.js` for offline.
 - Version footer: **1.12**.
+- Manual update checks via footer button with toast feedback; no automatic update on load.
 
 ## Run locally
 Just open `index.html` in a local web server (service workers need http/https). For example:
@@ -30,3 +31,4 @@ python3 -m http.server 8080
 ## Notes
 - All data persists in the browser via `localStorage`. Clearing site data will reset it.
 - The service worker precaches the app shell; update the `CACHE_NAME`/version to force clients to refresh.
+- After the first online load, all assets are cached so the app can launch fully offline.

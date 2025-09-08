@@ -14,6 +14,11 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
+  // Ensure the worker becomes active on first install so the app is immediately
+  // available offline.
+  if (!self.registration.active) {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {

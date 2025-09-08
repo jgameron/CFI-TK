@@ -41,6 +41,7 @@
     resetAll: $("#resetAll"),
     installBtn: $("#installBtn"),
     updateBtn: $("#updateBtn"),
+    checkUpdateBtn: $("#checkUpdateBtn"),
     sumElapsed: $("#sumElapsed"),
     sumElapsedLabel: $("#sumElapsedLabel"),
     sumHobbs: $("#sumHobbs"),
@@ -115,6 +116,9 @@
   let showSumHobbsDec = true;
   let showSumTachDec = true;
   let showSumManualDec = true;
+
+  // keep a reference to the service worker registration for manual update checks
+  let swReg = null;
 
   function now(){
     return Date.now();
@@ -612,7 +616,8 @@
   // ==== SW REGISTER ====
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
-      navigator.serviceWorker.register('service-worker.js').then((reg)=>{
+      function wireSW(reg){
+        swReg = reg;
         function showUpdate(worker){
           els.updateBtn.style.display = 'inline-block';
           els.updateBtn.addEventListener('click', ()=>{
@@ -630,9 +635,14 @@
             }
           });
         });
-        // Attempt to check for updates but ignore failures (e.g., offline)
-        reg.update().catch(() => {});
-      }).catch((err)=>console.warn('SW registration failed', err));
+      }
+
+      navigator.serviceWorker.register('service-worker.js').then(wireSW).catch(()=>{
+        // offline or registration failed; use existing registration if available
+        navigator.serviceWorker.getRegistration().then((reg)=>{
+          if(reg) wireSW(reg);
+        });
+      });
 
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', ()=>{
@@ -642,5 +652,23 @@
       });
     });
   }
+
+  // manual check for service worker updates with feedback
+  els.checkUpdateBtn.addEventListener('click', ()=>{
+    if(!swReg){
+      toast('Update service unavailable');
+      return;
+    }
+    if(!navigator.onLine){
+      toast('Offline: using saved version');
+      return;
+    }
+    toast('Checking for updates…');
+    swReg.update().then(()=>{
+      if(!swReg.waiting){
+        toast('App is up to date');
+      }
+    }).catch(()=> toast('Update check failed'));
+  });
 
 })();
