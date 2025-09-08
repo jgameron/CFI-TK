@@ -1,13 +1,13 @@
 // Flight Timer & Log — Service Worker v1.12
 const CACHE_NAME = "ftl-cache-v1.12";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./app.js",
-  "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
+  "/",
+  "index.html",
+  "style.css",
+  "app.js",
+  "manifest.webmanifest",
+  "icons/icon-192.png",
+  "icons/icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -34,32 +34,32 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  // Always serve the app shell for navigation requests so the
-  // interface works fully offline.
+
+  // Serve the application shell for navigation requests so the interface
+  // continues to function offline.
   if (req.mode === "navigate") {
     event.respondWith(
-      caches.match("./index.html").then((cached) => cached || fetch("./index.html"))
+      fetch(req).catch(() => caches.match("index.html"))
     );
     return;
   }
-  // Only handle GET for other requests
+
+  // Only handle GET requests for other resources.
   if (req.method !== "GET") return;
 
+  // Use a cache-first strategy. If the resource is in the cache, serve it
+  // immediately. Otherwise fetch from the network and cache the response for
+  // future offline use. If both fail, fall back to the app shell.
   event.respondWith(
     caches.match(req).then((cached) => {
-      const fetchPromise = fetch(req)
+      if (cached) return cached;
+      return fetch(req)
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => cached || caches.match("./index.html"));
-
-      if (cached) {
-        event.waitUntil(fetchPromise);
-        return cached;
-      }
-      return fetchPromise;
+        .catch(() => caches.match("index.html"));
     })
   );
 });
