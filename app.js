@@ -41,6 +41,7 @@
     resetAll: $("#resetAll"),
     installBtn: $("#installBtn"),
     updateBtn: $("#updateBtn"),
+    checkUpdateBtn: $("#checkUpdateBtn"),
     sumElapsed: $("#sumElapsed"),
     sumElapsedLabel: $("#sumElapsedLabel"),
     sumHobbs: $("#sumHobbs"),
@@ -115,6 +116,9 @@
   let showSumHobbsDec = true;
   let showSumTachDec = true;
   let showSumManualDec = true;
+
+  // keep a reference to the service worker registration for manual update checks
+  let swReg = null;
 
   function now(){
     return Date.now();
@@ -613,6 +617,7 @@
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
       navigator.serviceWorker.register('service-worker.js').then((reg)=>{
+        swReg = reg;
         function showUpdate(worker){
           els.updateBtn.style.display = 'inline-block';
           els.updateBtn.addEventListener('click', ()=>{
@@ -630,8 +635,6 @@
             }
           });
         });
-        // Attempt to check for updates but ignore failures (e.g., offline)
-        reg.update().catch(() => {});
       }).catch((err)=>console.warn('SW registration failed', err));
 
       let refreshing = false;
@@ -642,5 +645,12 @@
       });
     });
   }
+
+  // manual check for service worker updates
+  els.checkUpdateBtn.addEventListener('click', ()=>{
+    if(swReg && navigator.onLine){
+      swReg.update().catch(()=>{});
+    }
+  });
 
 })();
