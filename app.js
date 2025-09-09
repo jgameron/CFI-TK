@@ -1,8 +1,8 @@
-/* Flight Timer & Log PWA — Version 1.12 */
+/* Flight Timer & Log PWA — Version 1.13 */
 (function(){
 
   const $ = (sel) => document.querySelector(sel);
-  const stateKey = "ftl.state.v1.12";
+  const stateKey = "ftl.state.v1.13";
 
   const els = {
     elapsedHHMMSS: $("#elapsedHHMMSS"),
@@ -40,8 +40,7 @@
     copySummary: $("#copySummary"),
     resetAll: $("#resetAll"),
     installBtn: $("#installBtn"),
-    updateBtn: $("#updateBtn"),
-    checkUpdateBtn: $("#checkUpdateBtn"),
+    // update buttons removed for offline-only mode
     sumElapsed: $("#sumElapsed"),
     sumElapsedLabel: $("#sumElapsedLabel"),
     sumHobbs: $("#sumHobbs"),
@@ -117,8 +116,7 @@
   let showSumTachDec = true;
   let showSumManualDec = true;
 
-  // keep a reference to the service worker registration for manual update checks
-  let swReg = null;
+  // update logic removed; service worker registration is simple
 
   function now(){
     return Date.now();
@@ -470,7 +468,7 @@
       lines.push("");
     }
     lines.push("Flight Timer & Log — Summary");
-    lines.push("Version: 1.12");
+    lines.push("Version: 1.13");
     const updated = new Date(st.meta.updatedAt);
     lines.push("Saved: " + updated.toLocaleString());
     lines.push("");
@@ -616,41 +614,10 @@
   // ==== SW REGISTER ====
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{
-      navigator.serviceWorker.register('service-worker.js').then((reg)=>{
-        swReg = reg;
-        function showUpdate(worker){
-          els.updateBtn.style.display = 'inline-block';
-          els.updateBtn.addEventListener('click', ()=>{
-            worker.postMessage({ type: 'SKIP_WAITING' });
-          }, { once: true });
-        }
-        if(reg.waiting){
-          showUpdate(reg.waiting);
-        }
-        reg.addEventListener('updatefound', ()=>{
-          const nw = reg.installing;
-          nw.addEventListener('statechange', ()=>{
-            if(nw.state === 'installed' && navigator.serviceWorker.controller){
-              showUpdate(nw);
-            }
-          });
-        });
-      }).catch((err)=>console.warn('SW registration failed', err));
-
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
-        if(refreshing) return;
-        refreshing = true;
-        window.location.reload();
-      });
+      navigator.serviceWorker
+        .register('service-worker.js')
+        .catch((err)=>console.warn('SW registration failed', err));
     });
   }
-
-  // manual check for service worker updates
-  els.checkUpdateBtn.addEventListener('click', ()=>{
-    if(swReg && navigator.onLine){
-      swReg.update().catch(()=>{});
-    }
-  });
 
 })();

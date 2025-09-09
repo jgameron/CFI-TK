@@ -1,5 +1,5 @@
-// Flight Timer & Log — Service Worker v1.12
-const CACHE_NAME = "ftl-cache-v1.12";
+// Flight Timer & Log — Service Worker v1.13
+const CACHE_NAME = "ftl-cache-v1.13";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,12 +24,6 @@ self.addEventListener("activate", (event) => {
       )
       .then(() => self.clients.claim())
   );
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
 
 self.addEventListener("fetch", (event) => {
