@@ -570,7 +570,8 @@
       resetTimer();
       updateDisplayCounts();
       renderHobbs(); renderTach();
-      renderManual(); renderSummary();
+      renderManual(); renderDue();
+      renderStudent(); renderSummary();
       toast("All data cleared");
     }
   });
