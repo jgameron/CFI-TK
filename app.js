@@ -1,19 +1,47 @@
-/* Flight Timer & Log PWA — Version 1.13 */
+/* Flight Timer & Log PWA — Version 1.14 */
 (function(){
 
   const $ = (sel) => document.querySelector(sel);
   const stateKey = "ftl.state.v1.13";
 
+  const timerInitialState = {
+    running: false,
+    firstStartMs: null,
+    lastResumeMs: null,
+    baseElapsedMs: 0,
+    lastPauseMs: null,
+    basePausedMs: 0,
+  };
+
   const els = {
-    elapsedHHMMSS: $("#elapsedHHMMSS"),
-    elapsedLabel: $("#elapsedLabel"),
-    pausedHHMMSS: $("#pausedHHMMSS"),
-    pausedLabel: $("#pausedLabel"),
-    startedAt: $("#startedAt"),
-    startResumeBtn: $("#startResumeBtn"),
-    pauseBtn: $("#pauseBtn"),
-    resetTimerBtn: $("#resetTimerBtn"),
-    timerState: $("#timerState"),
+    mainTimer: {
+      elapsed: $("#elapsedHHMMSS"),
+      elapsedLabel: $("#elapsedLabel"),
+      paused: $("#pausedHHMMSS"),
+      pausedLabel: $("#pausedLabel"),
+      startedAt: $("#startedAt"),
+      startBtn: $("#startResumeBtn"),
+      pauseBtn: $("#pauseBtn"),
+      stopBtn: $("#stopTimerBtn"),
+      resetBtn: $("#resetTimerBtn"),
+      statePill: $("#timerState"),
+      summary: $("#sumElapsed"),
+      summaryLabel: $("#sumElapsedLabel"),
+    },
+    flightTimer: {
+      elapsed: $("#flightElapsedHHMMSS"),
+      elapsedLabel: $("#flightElapsedLabel"),
+      paused: $("#flightPausedHHMMSS"),
+      pausedLabel: $("#flightPausedLabel"),
+      startedAt: $("#flightStartedAt"),
+      startBtn: $("#flightStartResumeBtn"),
+      pauseBtn: $("#flightPauseBtn"),
+      stopBtn: $("#flightStopBtn"),
+      resetBtn: $("#flightResetBtn"),
+      statePill: $("#flightTimerState"),
+      summary: $("#sumFlight"),
+      summaryLabel: $("#sumFlightLabel"),
+    },
     stdPlus: $("#stdPlus"),
     stdMinus: $("#stdMinus"),
     instPlus: $("#instPlus"),
@@ -39,6 +67,7 @@
     summaryBox: $("#summaryBox"),
     copySummary: $("#copySummary"),
     resetAll: $("#resetAll"),
+    resetAllTop: $("#resetAllTop"),
     installBtn: $("#installBtn"),
     // update buttons removed for offline-only mode
     sumElapsed: $("#sumElapsed"),
@@ -52,19 +81,8 @@
   };
 
   const initial = {
-    timer: {
-      running: false,
-      // first moment Start was pressed in this session (persisted)
-      firstStartMs: null,
-      // when the timer last resumed
-      lastResumeMs: null,
-      // total elapsed not including current run segment
-      baseElapsedMs: 0,
-      // when the timer was paused
-      lastPauseMs: null,
-      // total paused time
-      basePausedMs: 0,
-    },
+    timer: structuredClone(timerInitialState),
+    flightTimer: structuredClone(timerInitialState),
     landings: { student: 0, instructor: 0 },
     hobbs: { start: "", stop: "" },
     tach: { start: "", stop: "" },
@@ -107,67 +125,16 @@
   }
 
   // ==== TIMER ====
-  let tickHandle = null;
-  let showPausedDec = false;
-  let showElapsedDec = false;
+  const timerControllers = {};
   let showManDec = false;
-  let showSumElapsedDec = true;
   let showSumHobbsDec = true;
   let showSumTachDec = true;
   let showSumManualDec = true;
-
-  // update logic removed; service worker registration is simple
 
   function now(){
     return Date.now();
   }
 
-  function startTimer(){
-    if(!st.timer.firstStartMs) st.timer.firstStartMs = now();
-    if(st.timer.lastPauseMs){
-      st.timer.basePausedMs += Math.max(0, now() - st.timer.lastPauseMs);
-      st.timer.lastPauseMs = null;
-    }
-    st.timer.lastResumeMs = now();
-    st.timer.running = true;
-    save();
-    startTicking();
-    renderTimer();
-  }
-
-  function pauseTimer(){
-    if(!st.timer.running) return;
-    const delta = now() - (st.timer.lastResumeMs ?? now());
-    st.timer.baseElapsedMs += Math.max(0, delta);
-    st.timer.lastResumeMs = null;
-    st.timer.running = false;
-    st.timer.lastPauseMs = now();
-    save();
-    renderTimer();
-  }
-
-  function resetTimer(){
-    st.timer = structuredClone(initial.timer);
-    save();
-    renderTimer();
-    stopTicking();
-  }
-
-  function getElapsedMs(){
-    const base = st.timer.baseElapsedMs || 0;
-    if(st.timer.running && st.timer.lastResumeMs){
-      return base + (now() - st.timer.lastResumeMs);
-    }
-    return base;
-  }
-
-  function getPausedMs(){
-    const base = st.timer.basePausedMs || 0;
-    if(!st.timer.running && st.timer.lastPauseMs){
-      return base + (now() - st.timer.lastPauseMs);
-    }
-    return base;
-  }
   function msToHHMMSS(ms){
     const totalSec = Math.floor(ms/1000);
     const hh = Math.floor(totalSec / 3600);
@@ -190,85 +157,237 @@
     return String(hh).padStart(2,'0') + ":" + String(mm).padStart(2,'0');
   }
 
-  function renderTimer(){
-    const ms = getElapsedMs();
-    const hhmmss = msToHHMMSS(ms);
-    const dec = msToDec(ms);
-    if(showElapsedDec){
-      els.elapsedHHMMSS.textContent = dec;
-      els.elapsedLabel.textContent = "Elapsed (Decimal)";
-    } else {
-      els.elapsedHHMMSS.textContent = hhmmss;
-      els.elapsedLabel.textContent = "Elapsed (HH:MM:SS)";
-    }
-    if(showSumElapsedDec){
-      els.sumElapsed.textContent = dec;
-      els.sumElapsedLabel.textContent = "Elapsed (Decimal)";
-    } else {
-      els.sumElapsed.textContent = hhmmss;
-      els.sumElapsedLabel.textContent = "Elapsed (HH:MM:SS)";
-    }
-    const pms = getPausedMs();
-    if(showPausedDec){
-      els.pausedHHMMSS.textContent = msToDec(pms);
-      els.pausedLabel.textContent = "Paused (Decimal)";
-    } else {
-      els.pausedHHMMSS.textContent = msToHHMMSS(pms);
-      els.pausedLabel.textContent = "Paused (HH:MM:SS)";
-    }
-    const running = st.timer.running;
-    els.timerState.textContent = running ? "running" : "stopped";
-    els.timerState.classList.toggle("running", running);
-    els.timerState.classList.toggle("stopped", !running);
-    if(st.timer.firstStartMs){
-      const d = new Date(st.timer.firstStartMs);
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mm = String(d.getMinutes()).padStart(2,'0');
-      const ss = String(d.getSeconds()).padStart(2,'0');
-      els.startedAt.textContent = `${hh}:${mm}:${ss}`;
-    } else {
-      els.startedAt.textContent = "--:--:--";
-    }
-    els.startResumeBtn.textContent = st.timer.running ? "Resume" : (st.timer.baseElapsedMs>0 ? "Resume" : "Start");
+  function formatLocalTime(ts){
+    const d = new Date(ts);
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
   }
 
-  function startTicking(){
-    if(tickHandle) return;
-    tickHandle = setInterval(renderTimer, 1000);
-  }
-  function stopTicking(){
-    if(tickHandle){
-      clearInterval(tickHandle);
-      tickHandle = null;
+  function setupTimer(stateKey, config){
+    const nodes = config.nodes;
+    const toggles = {
+      elapsedDec: false,
+      pausedDec: false,
+      summaryDec: true,
+    };
+    let tickHandle = null;
+
+    function timerState(){
+      return st[stateKey];
     }
+
+    function getElapsedMs(){
+      const t = timerState();
+      const base = t.baseElapsedMs || 0;
+      if(t.running && t.lastResumeMs){
+        return base + Math.max(0, now() - t.lastResumeMs);
+      }
+      return base;
+    }
+
+    function getPausedMs(){
+      const t = timerState();
+      const base = t.basePausedMs || 0;
+      if(!t.running && t.lastPauseMs){
+        return base + Math.max(0, now() - t.lastPauseMs);
+      }
+      return base;
+    }
+
+    function ensureTicking(){
+      const t = timerState();
+      const needsTick = !!(t.running || t.lastPauseMs);
+      if(needsTick && !tickHandle){
+        tickHandle = setInterval(render, 1000);
+      } else if(!needsTick && tickHandle){
+        clearInterval(tickHandle);
+        tickHandle = null;
+      }
+    }
+
+    function start(){
+      const t = timerState();
+      const ts = now();
+      if(!t.firstStartMs) t.firstStartMs = ts;
+      if(t.lastPauseMs){
+        t.basePausedMs += Math.max(0, ts - t.lastPauseMs);
+        t.lastPauseMs = null;
+      }
+      t.lastResumeMs = ts;
+      t.running = true;
+      save();
+      ensureTicking();
+      render();
+    }
+
+    function pause(){
+      const t = timerState();
+      if(!t.running) return;
+      const ts = now();
+      t.baseElapsedMs += Math.max(0, ts - (t.lastResumeMs ?? ts));
+      t.lastResumeMs = null;
+      t.running = false;
+      t.lastPauseMs = ts;
+      save();
+      ensureTicking();
+      render();
+    }
+
+    function stop(){
+      const t = timerState();
+      const ts = now();
+      if(t.running && t.lastResumeMs){
+        t.baseElapsedMs += Math.max(0, ts - t.lastResumeMs);
+        t.lastResumeMs = null;
+      }
+      if(t.lastPauseMs){
+        t.basePausedMs += Math.max(0, ts - t.lastPauseMs);
+        t.lastPauseMs = null;
+      }
+      t.running = false;
+      save();
+      ensureTicking();
+      render();
+    }
+
+    function reset(){
+      st[stateKey] = structuredClone(timerInitialState);
+      save();
+      if(tickHandle){
+        clearInterval(tickHandle);
+        tickHandle = null;
+      }
+      render();
+    }
+
+    function render(){
+      const t = timerState();
+      const elapsedMs = getElapsedMs();
+      const elapsedHHMMSS = msToHHMMSS(elapsedMs);
+      const elapsedDec = msToDec(elapsedMs);
+      if(nodes.elapsed && nodes.elapsedLabel){
+        if(toggles.elapsedDec){
+          nodes.elapsed.textContent = elapsedDec;
+          nodes.elapsedLabel.textContent = `${config.elapsedLabel} (Decimal)`;
+        } else {
+          nodes.elapsed.textContent = elapsedHHMMSS;
+          nodes.elapsedLabel.textContent = `${config.elapsedLabel} (HH:MM:SS)`;
+        }
+      }
+
+      const pausedMs = getPausedMs();
+      const pausedHHMMSS = msToHHMMSS(pausedMs);
+      const pausedDec = msToDec(pausedMs);
+      if(nodes.paused && nodes.pausedLabel){
+        if(toggles.pausedDec){
+          nodes.paused.textContent = pausedDec;
+          nodes.pausedLabel.textContent = `${config.pausedLabel} (Decimal)`;
+        } else {
+          nodes.paused.textContent = pausedHHMMSS;
+          nodes.pausedLabel.textContent = `${config.pausedLabel} (HH:MM:SS)`;
+        }
+      }
+
+      if(nodes.summary && nodes.summaryLabel){
+        if(toggles.summaryDec){
+          nodes.summary.textContent = elapsedDec;
+          nodes.summaryLabel.textContent = `${config.summaryLabel} (Decimal)`;
+        } else {
+          nodes.summary.textContent = elapsedHHMMSS;
+          nodes.summaryLabel.textContent = `${config.summaryLabel} (HH:MM:SS)`;
+        }
+      }
+
+      if(nodes.statePill){
+        nodes.statePill.textContent = t.running ? "running" : "stopped";
+        nodes.statePill.classList.toggle("running", t.running);
+        nodes.statePill.classList.toggle("stopped", !t.running);
+      }
+
+      if(nodes.startedAt){
+        nodes.startedAt.textContent = t.firstStartMs ? formatLocalTime(t.firstStartMs) : "--:--:--";
+      }
+
+      if(nodes.startBtn){
+        nodes.startBtn.textContent = t.firstStartMs ? "Resume" : "Start";
+      }
+
+      ensureTicking();
+    }
+
+    if(nodes.startBtn){
+      nodes.startBtn.addEventListener("click", ()=>{
+        if(!timerState().running){
+          start();
+        }
+      });
+    }
+    if(nodes.pauseBtn){
+      nodes.pauseBtn.addEventListener("click", pause);
+    }
+    if(nodes.stopBtn){
+      nodes.stopBtn.addEventListener("click", stop);
+    }
+    if(nodes.resetBtn){
+      nodes.resetBtn.addEventListener("click", ()=>{
+        if(confirm(config.resetConfirm)){
+          reset();
+        }
+      });
+    }
+    if(nodes.elapsed){
+      nodes.elapsed.addEventListener("click", ()=>{
+        toggles.elapsedDec = !toggles.elapsedDec;
+        render();
+      });
+    }
+    if(nodes.paused){
+      nodes.paused.addEventListener("click", ()=>{
+        toggles.pausedDec = !toggles.pausedDec;
+        render();
+      });
+    }
+    if(nodes.summary){
+      nodes.summary.addEventListener("click", ()=>{
+        toggles.summaryDec = !toggles.summaryDec;
+        render();
+      });
+    }
+
+    render();
+
+    return {
+      render,
+      start,
+      pause,
+      stop,
+      reset,
+      getElapsedMs,
+      getPausedMs,
+      state: timerState,
+      formatElapsed: () => msToHHMMSS(getElapsedMs()),
+      formatElapsedDec: () => msToDec(getElapsedMs()),
+      formatStart: () => timerState().firstStartMs ? formatLocalTime(timerState().firstStartMs) : null,
+    };
   }
 
-  els.startResumeBtn.addEventListener("click", ()=>{
-    // If currently running, this acts like "Resume" label shows but logic should be start if stopped.
-    if(!st.timer.running){
-      startTimer();
-    }
-  });
-  els.pauseBtn.addEventListener("click", pauseTimer);
-  els.resetTimerBtn.addEventListener("click", ()=>{
-    if(confirm("Reset the live timer?")) resetTimer();
-  });
-  els.elapsedHHMMSS.addEventListener("click", ()=>{
-    showElapsedDec = !showElapsedDec;
-    renderTimer();
-  });
-  els.pausedHHMMSS.addEventListener("click", ()=>{
-    showPausedDec = !showPausedDec;
-    renderTimer();
-  });
-  els.sumElapsed.addEventListener("click", ()=>{
-    showSumElapsedDec = !showSumElapsedDec;
-    renderTimer();
+  timerControllers.main = setupTimer("timer", {
+    nodes: els.mainTimer,
+    elapsedLabel: "Elapsed",
+    pausedLabel: "Paused",
+    summaryLabel: "Elapsed",
+    resetConfirm: "Reset the live timer?",
   });
 
-  // Resume ticking if re-opened
-  if(st.timer.running || st.timer.lastPauseMs) startTicking();
-  renderTimer();
+  timerControllers.flight = setupTimer("flightTimer", {
+    nodes: els.flightTimer,
+    elapsedLabel: "Flight Elapsed",
+    pausedLabel: "Flight Paused",
+    summaryLabel: "Flight Timer",
+    resetConfirm: "Reset the flight timer?",
+  });
 
   // ==== LANDINGS ====
   function updateDisplayCounts(){
@@ -468,18 +587,29 @@
       lines.push("");
     }
     lines.push("Flight Timer & Log — Summary");
-    lines.push("Version: 1.13");
+    lines.push("Version: 1.14");
     const updated = new Date(st.meta.updatedAt);
     lines.push("Saved: " + updated.toLocaleString());
     lines.push("");
     // Live timer
-    if (st.timer.firstStartMs) {
-      const ms = getElapsedMs();
-      const timerHHMM = msToHHMMSS(ms);
-      const timerDec = msToDec(ms);
-      const started = document.getElementById("startedAt").textContent;
+    const mainTimerState = st.timer;
+    if (mainTimerState.firstStartMs && timerControllers.main) {
+      const timerHHMM = timerControllers.main.formatElapsed();
+      const timerDec = timerControllers.main.formatElapsedDec();
+      const started = timerControllers.main.formatStart();
       lines.push("[Live Timer]");
-      lines.push("  Started: " + started);
+      if (started) lines.push("  Started: " + started);
+      lines.push("  Elapsed: " + timerHHMM + " (" + timerDec + " h)");
+      lines.push("");
+    }
+    // Flight timer
+    const flightTimerState = st.flightTimer;
+    if (flightTimerState.firstStartMs && timerControllers.flight) {
+      const timerHHMM = timerControllers.flight.formatElapsed();
+      const timerDec = timerControllers.flight.formatElapsedDec();
+      const started = timerControllers.flight.formatStart();
+      lines.push("[Flight Timer]");
+      if (started) lines.push("  Started: " + started);
       lines.push("  Elapsed: " + timerHHMM + " (" + timerDec + " h)");
       lines.push("");
     }
@@ -493,7 +623,7 @@
     // Hobbs
     const hobbsStart = st.hobbs.start;
     const hobbsStop = st.hobbs.stop;
-    const hobbsTotal = document.getElementById("hobbsTotal").textContent;
+    const hobbsTotal = els.hobbsTotal.textContent;
     if (hobbsStart || hobbsStop) {
       lines.push("[Hobbs]");
       if (hobbsStart) lines.push("  Start: " + hobbsStart);
@@ -504,7 +634,7 @@
     // Tach
     const tachStart = st.tach.start;
     const tachStop = st.tach.stop;
-    const tachTotal = document.getElementById("tachTotal").textContent;
+    const tachTotal = els.tachTotal.textContent;
     if (tachStart || tachStop) {
       lines.push("[Tach]");
       if (tachStart) lines.push("  Start: " + tachStart);
@@ -561,20 +691,24 @@
   });
 
   // ==== RESET ALL ====
-  els.resetAll.addEventListener("click", ()=>{
-    if(confirm("Reset ALL fields and data? This cannot be undone.")){
-      localStorage.removeItem(stateKey);
-      st = structuredClone(initial);
-      save();
-      // re-render all
-      resetTimer();
-      updateDisplayCounts();
-      renderHobbs(); renderTach();
-      renderManual(); renderDue();
-      renderStudent(); renderSummary();
-      toast("All data cleared");
-    }
-  });
+  function handleMasterReset(){
+    if(!confirm("Reset ALL fields and data? This cannot be undone.")) return;
+    localStorage.removeItem(stateKey);
+    st = structuredClone(initial);
+    save();
+    timerControllers.main.render();
+    timerControllers.flight.render();
+    updateDisplayCounts();
+    renderHobbs(); renderTach();
+    renderManual(); renderDue();
+    renderStudent(); renderSummary();
+    toast("All data cleared");
+  }
+
+  els.resetAll.addEventListener("click", handleMasterReset);
+  if(els.resetAllTop){
+    els.resetAllTop.addEventListener("click", handleMasterReset);
+  }
 
   // Simple toast
   let toastEl = null, toastT = null;

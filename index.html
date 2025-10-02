@@ -34,6 +34,9 @@
     }
     header {
     }
+    .header-row { align-items: center; }
+    .header-actions { margin-left: auto; justify-content: flex-end; }
+    .header-actions > * { flex: 0 0 auto; }
     .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
     h1 { font-size: 1.35rem; margin: 0 0 6px; font-weight: 700; }
     .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 8px; font-size: .9rem; }
@@ -172,12 +175,15 @@
 </head>
 <body>
   <header class="wrap">
-    <div class="row">
+    <div class="row header-row">
       <div>
         <h1>Flight Timer & Log</h1>
         <p class="subtitle">Offline PWA — your data stays in local storage</p>
       </div>
-      <button id="installBtn" class="install-banner">Install App</button>
+      <div class="row header-actions">
+        <button id="resetAllTop" class="danger">Reset All</button>
+        <button id="installBtn" class="install-banner">Install App</button>
+      </div>
     </div>
   </header>
 
@@ -209,10 +215,37 @@
         <div class="btns">
           <button id="startResumeBtn" class="primary">Start</button>
           <button id="pauseBtn" class="warn">Pause</button>
+          <button id="stopTimerBtn" class="ghost">Stop</button>
           <button id="resetTimerBtn" class="danger">Reset</button>
           <span id="timerState" class="pill stopped">stopped</span>
         </div>
         <p class="hint">Pauses don’t count toward elapsed time. Timer persists if you close the tab.</p>
+      </section>
+
+      <section class="card" id="flightTimerCard" aria-live="polite">
+        <h2>Flight Timer</h2>
+        <div class="timer-display">
+          <div class="stat">
+            <label id="flightElapsedLabel">Flight Elapsed (HH:MM:SS)</label>
+            <div id="flightElapsedHHMMSS" class="value toggle">00:00:00</div>
+          </div>
+          <div class="stat">
+            <label id="flightPausedLabel">Flight Paused (HH:MM:SS)</label>
+            <div id="flightPausedHHMMSS" class="value toggle">00:00:00</div>
+          </div>
+          <div class="stat">
+            <label>Flight Started (Local)</label>
+            <div id="flightStartedAt" class="value">--:--:--</div>
+          </div>
+        </div>
+        <div class="btns">
+          <button id="flightStartResumeBtn" class="primary">Start</button>
+          <button id="flightPauseBtn" class="warn">Pause</button>
+          <button id="flightStopBtn" class="ghost">Stop</button>
+          <button id="flightResetBtn" class="danger">Reset</button>
+          <span id="flightTimerState" class="pill stopped">stopped</span>
+        </div>
+        <p class="hint">Use the dedicated flight timer for airborne tracking while keeping the live timer running.</p>
       </section>
 
       <section class="card" id="landingsCard">
@@ -321,6 +354,10 @@
             <div id="sumElapsed" class="value toggle">0.00</div>
           </div>
           <div class="stat">
+            <label id="sumFlightLabel">Flight Timer (Decimal)</label>
+            <div id="sumFlight" class="value toggle">0.00</div>
+          </div>
+          <div class="stat">
             <label id="sumHobbsLabel">Hobbs (H.DD)</label>
             <div id="sumHobbs" class="value toggle">0.00</div>
           </div>
@@ -348,7 +385,7 @@
 
   <footer>
     <div class="tiny">Created by James Gameron</div>
-    <div class="tiny">Flight Timer & Log — Version 1.13</div>
+    <div class="tiny">Flight Timer & Log — Version 1.14</div>
   </footer>
 
   <script src="app.js"></script>
