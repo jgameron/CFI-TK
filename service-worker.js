@@ -1,5 +1,6 @@
-// Flight Timer & Log — Service Worker v1.13
-const CACHE_NAME = "ftl-cache-v1.13";
+// Flight Timer & Log — Service Worker v1.14
+const CACHE_NAME = "ftl-cache-v1.14";
+const APP_SHELL_URL = new URL("./index.html", self.location).toString();
 const ASSETS = [
   "./",
   "./index.html",
@@ -14,6 +15,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -29,34 +31,50 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  // Serve the application shell for navigation requests so the interface
-  // continues to function offline.
-  if (req.mode === "navigate") {
+  if (req.mode === "navigate" || (req.method === "GET" && req.headers.get("accept")?.includes("text/html"))) {
     event.respondWith(
-      caches
-        .match("./index.html")
-        .then((cached) => cached || fetch(req))
-        .catch(() => caches.match("./index.html"))
+      caches.match(APP_SHELL_URL).then((cached) => {
+        if (cached) {
+          event.waitUntil(
+            fetch(req)
+              .then((res) => {
+                if (!res || res.status !== 200) return;
+                const copy = res.clone();
+                return caches
+                  .open(CACHE_NAME)
+                  .then((cache) => cache.put(APP_SHELL_URL, copy));
+              })
+              .catch(() => null)
+          );
+          return cached;
+        }
+        return fetch(req)
+          .then((res) => {
+            if (res && res.status === 200) {
+              const copy = res.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(APP_SHELL_URL, copy));
+            }
+            return res;
+          })
+          .catch(() => caches.match(APP_SHELL_URL));
+      })
     );
     return;
   }
 
-  // Only handle GET requests for other resources.
   if (req.method !== "GET") return;
 
-  // Use a cache-first strategy. If the resource is in the cache, serve it
-  // immediately. Otherwise fetch from the network and cache the response for
-  // future offline use. If both fail, fall back to the app shell.
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req)
         .then((res) => {
+          if (!res || res.status !== 200 || res.type === "opaque") return res;
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match("./index.html"));
+        .catch(() => caches.match(APP_SHELL_URL));
     })
   );
 });
